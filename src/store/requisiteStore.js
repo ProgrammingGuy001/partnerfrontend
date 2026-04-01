@@ -31,8 +31,7 @@ const useRequisiteStore = create(
             bucket: [...state.bucket, {
               product_name: item.product_name,
               quantity: item.quantity || 1,
-              issue_description: item.issue_description || '',
-              responsible_department: item.responsible_department || ''
+              issue_description: item.issue_description || ''
             }]
           };
         }),

@@ -8,8 +8,7 @@ import { Label } from '@components/ui/label';
 const AddToBucketModal = ({ item, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     quantity: 1,
-    issue_description: '',
-    responsible_department: ''
+    issue_description: ''
   });
 
   const handleSubmit = (e) => {
@@ -58,16 +57,6 @@ const AddToBucketModal = ({ item, onSave, onClose }) => {
               onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
               placeholder="Describe the issue or requirement..."
               className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Responsible Department</Label>
-            <Input
-              type="text"
-              value={formData.responsible_department}
-              onChange={(e) => setFormData({ ...formData, responsible_department: e.target.value })}
-              placeholder="e.g., Production, Quality, Maintenance"
             />
           </div>
 

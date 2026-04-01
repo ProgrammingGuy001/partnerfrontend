@@ -21,16 +21,14 @@ const BucketPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({
     quantity: 1,
-    issue_description: '',
-    responsible_department: ''
+    issue_description: ''
   });
 
   const handleEdit = (item) => {
     setEditingItem(item.product_name);
     setEditForm({
       quantity: item.quantity || 1,
-      issue_description: item.issue_description || '',
-      responsible_department: item.responsible_department || ''
+      issue_description: item.issue_description || ''
     });
   };
 
@@ -43,8 +41,7 @@ const BucketPage = () => {
     setEditingItem(null);
     setEditForm({
       quantity: 1,
-      issue_description: '',
-      responsible_department: ''
+      issue_description: ''
     });
   };
 
@@ -100,9 +97,9 @@ const BucketPage = () => {
             <div className="h-24 w-24 rounded-full bg-secondary flex items-center justify-center mb-6">
               <ShoppingCart className="w-12 h-12 text-muted-foreground" />
             </div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2 font-heading">
+            <h3 className="text-2xl font-semibold text-foreground mb-2 font-heading">
               Your bucket is empty
-            </h2>
+            </h3>
             <p className="text-muted-foreground mb-8 max-w-md">
               Add items from the BOM hierarchy to create a site requisite and proceed to request parts.
             </p>
@@ -126,7 +123,6 @@ const BucketPage = () => {
                     <TableHead className="min-w-[200px]">Product Name</TableHead>
                     <TableHead className="w-[120px]">Quantity</TableHead>
                     <TableHead className="min-w-[200px]">Issue Description</TableHead>
-                    <TableHead className="w-[180px]">Resp. Dept.</TableHead>
                     <TableHead className="text-right w-[140px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -144,7 +140,7 @@ const BucketPage = () => {
                             value={editForm.quantity}
                             onChange={(e) => setEditForm({
                               ...editForm,
-                              quantity: parseFloat(e.target.value) || 0
+                              quantity: Number.parseFloat(e.target.value) || 0
                             })}
                             className="w-20 h-8"
                           />
@@ -168,26 +164,6 @@ const BucketPage = () => {
                           <span className="text-sm text-muted-foreground">
                             {item.issue_description || (
                               <span className="text-muted-foreground/50 italic">Not specified</span>
-                            )}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingItem === item.product_name ? (
-                          <Input
-                            type="text"
-                            value={editForm.responsible_department}
-                            onChange={(e) => setEditForm({
-                              ...editForm,
-                              responsible_department: e.target.value
-                            })}
-                            className="h-8"
-                            placeholder="Dept..."
-                          />
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            {item.responsible_department || (
-                              <span className="text-muted-foreground/50 italic">Not assigned</span>
                             )}
                           </span>
                         )}
@@ -230,7 +206,7 @@ const BucketPage = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => {
-                                  if (window.confirm(`Remove "${item.product_name}" from bucket?`)) {
+                                  if (globalThis.confirm(`Remove "${item.product_name}" from bucket?`)) {
                                     removeFromBucket(item.product_name);
                                   }
                                 }}

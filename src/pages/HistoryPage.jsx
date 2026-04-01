@@ -268,7 +268,6 @@ const HistoryPage = () => {
                             <TableHead>Product Name</TableHead>
                             <TableHead>Quantity</TableHead>
                             <TableHead>Issue Description</TableHead>
-                            <TableHead>Department</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -279,13 +278,6 @@ const HistoryPage = () => {
                               <TableCell>{req.quantity}</TableCell>
                               <TableCell>
                                 {req.issue_description || <span className="text-muted-foreground/60 italic text-sm">N/A</span>}
-                              </TableCell>
-                              <TableCell>
-                                {req.responsible_department ? (
-                                  <Badge variant="secondary" className="font-normal">{req.responsible_department}</Badge>
-                                ) : (
-                                  <span className="text-muted-foreground/60 italic text-sm">N/A</span>
-                                )}
                               </TableCell>
                             </TableRow>
                           ))}

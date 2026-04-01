@@ -3,6 +3,7 @@ import Card from '@components/common/Card';
 import { formatters } from '@utils/formatters';
 import { JOB_STATUS_COLORS, JOB_STATUS_LABELS } from '@utils/constants';
 import { useToast } from '@hooks/useToast';
+import { useAuthStore } from '@/store/authStore';
 import {
   IoPersonOutline,
   IoReaderOutline,
@@ -16,6 +17,8 @@ import {
 
 const JobDetails = ({ job }) => {
   const toast = useToast();
+  const user = useAuthStore((state) => state.user);
+  const isInternal = user?.is_internal;
 
   const copyToClipboard = async (value, label) => {
     if (!value) return;
@@ -62,11 +65,11 @@ const JobDetails = ({ job }) => {
       value: job.size || 'N/A',
       icon: IoResizeOutline,
     },
-    {
+    ...(!isInternal ? [{
       label: 'Rate',
       value: formatters.currency(job.rate),
       icon: IoCashOutline,
-    },
+    }] : []),
     {
       label: 'Google Map Link',
       value: job.google_map_link ? (
@@ -107,12 +110,14 @@ const JobDetails = ({ job }) => {
                 {JOB_STATUS_LABELS[job.status] || job.status}
               </span>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Payout</p>
-              <p className="text-sm font-semibold text-primary">
-                {formatters.currency(job.rate)}
-              </p>
-            </div>
+            {!isInternal && (
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Payout</p>
+                <p className="text-sm font-semibold text-primary">
+                  {formatters.currency(job.rate)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

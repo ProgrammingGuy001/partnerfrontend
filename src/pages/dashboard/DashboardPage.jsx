@@ -65,6 +65,7 @@ const DashboardPage = () => {
         stats={stats}
         totalJobs={totalJobs}
         completionRate={completionRate}
+        isInternal={user?.is_internal}
       />
 
       <div className="space-y-4 pt-4">

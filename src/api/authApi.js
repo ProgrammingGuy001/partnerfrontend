@@ -9,6 +9,7 @@ export const authApi = {
       last_name: userData.lastName,
       city: userData.city,
       pincode: userData.pincode,
+      is_internal: userData.isInternal || false,
     });
     return response.data;
   },

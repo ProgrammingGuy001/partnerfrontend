@@ -253,11 +253,6 @@ const SubmitPage = () => {
                           x{item.quantity}
                         </div>
                       </div>
-                      {item.responsible_department && (
-                        <div className="text-muted-foreground flex items-center gap-1 mt-1.5 pt-1.5 border-t border-border/30">
-                          <span className="scale-75 origin-left">🏢</span> Dept: {item.responsible_department}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

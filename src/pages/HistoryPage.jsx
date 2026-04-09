@@ -15,7 +15,7 @@ import {
   Filter,
   AlertCircle
 } from 'lucide-react';
-import { useBOMHistory, useUpdateBOMStatus } from '@hooks/useQueryHooks';
+import { useBOMHistory} from '@hooks/useQueryHooks';
 import { Card, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
@@ -29,7 +29,6 @@ const HistoryPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const { data: history = [], isLoading: loading, error, refetch } = useBOMHistory(100, 0);
-  const updateStatusMutation = useUpdateBOMStatus();
 
   const toggleExpand = (id) => {
     const newExpanded = new Set(expandedItems);
@@ -39,14 +38,6 @@ const HistoryPage = () => {
       newExpanded.add(id);
     }
     setExpandedItems(newExpanded);
-  };
-
-  const handleUpdateStatus = async (soId, newStatus) => {
-    try {
-      await updateStatusMutation.mutateAsync({ soId, status: newStatus });
-    } catch (err) {
-      alert('Failed to update status: ' + (err.response?.data?.detail || err.message));
-    }
   };
 
   const formatDate = (dateString) => {
@@ -226,27 +217,6 @@ const HistoryPage = () => {
                             <Package className="w-4 h-4 text-primary/70 shrink-0" />
                             <span className="truncate">{item.site_requisites.length} item{item.site_requisites.length !== 1 ? 's' : ''}</span>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status Toggle */}
-                    <div className="shrink-0">
-                      <div className="relative">
-                        <select
-                          value={item.status}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleUpdateStatus(item.id, e.target.value);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex h-9 w-[130px] appearance-none rounded-md border border-input bg-background pl-3 pr-8 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-medium"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                        <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                       </div>
                     </div>

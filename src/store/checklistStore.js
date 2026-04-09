@@ -134,6 +134,23 @@ saveChanges: async () => {
     return;
   }
   
+  // Validate all items being checked require photo and notes
+  for (const [id, changes] of pendingChanges.entries()) {
+    if (changes.checked === true) {
+      const item = items.find(i => i.id === parseInt(id));
+      if (!item?.document_link) {
+        const errorMsg = `Item "${item?.text || 'Unknown'}" requires a photo before it can be marked complete.`;
+        set({ error: errorMsg });
+        throw new Error(errorMsg);
+      }
+      if (!item?.comment?.trim()) {
+        const errorMsg = `Item "${item?.text || 'Unknown'}" requires notes/comment before it can be marked complete.`;
+        set({ error: errorMsg });
+        throw new Error(errorMsg);
+      }
+    }
+  }
+  
   set({ isSaving: true, error: null });
   
   const updates = Array.from(pendingChanges.entries()).map(([id, changes]) => ({

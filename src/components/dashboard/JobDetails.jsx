@@ -47,17 +47,20 @@ const JobDetails = ({ job }) => {
         <button
           type="button"
           className="line-clamp-3 text-left break-words hover:text-primary transition-colors"
-          title={job.address || 'N/A'}
-          onClick={() => copyToClipboard(job.address, 'Address')}
+          title={[job.address_line_1, job.address_line_2, job.city, job.state, job.pincode].filter(Boolean).join(', ')}
+          onClick={() => copyToClipboard([job.address_line_1, job.address_line_2, job.city, job.state, job.pincode].filter(Boolean).join(', '), 'Address')}
         >
-          {job.address || 'N/A'}
+          {[job.address_line_1, job.address_line_2].filter(Boolean).join(', ') || 'N/A'}
+          {(job.city || job.state || job.pincode) && (
+            <>
+              <br />
+              <span className="text-xs text-muted-foreground">
+                {[job.city, job.state, job.pincode].filter(Boolean).join(', ')}
+              </span>
+            </>
+          )}
         </button>
       ),
-      icon: IoLocationOutline,
-    },
-    {
-      label: 'Pincode',
-      value: job.pincode || 'N/A',
       icon: IoLocationOutline,
     },
     {
@@ -138,10 +141,10 @@ const JobDetails = ({ job }) => {
                   {detail.value}
                 </div>
               </div>
-              {detail.label === 'Address' && job.address && (
+              {detail.label === 'Address' && (job.address_line_1 || job.address_line_2 || job.city) && (
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(job.address, 'Address')}
+                  onClick={() => copyToClipboard([job.address_line_1, job.address_line_2, job.city, job.state, job.pincode].filter(Boolean).join(', '), 'Address')}
                   className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-card rounded-md transition-colors"
                   aria-label="Copy address"
                   title="Copy address"

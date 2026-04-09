@@ -67,30 +67,36 @@ export const checklistApi = {
   batchUpdate: async (jobId, checklistId, payload) => {
     const updates = payload?.updates || [];
 
-    await Promise.all(
-      updates.map((update) => {
-        const itemId = update.checklist_item_id || update.id;
-        const body = {};
+    try {
+      await Promise.all(
+        updates.map((update) => {
+          const itemId = update.checklist_item_id || update.id;
+          const body = {};
 
-        if (typeof update.checked === 'boolean') body.checked = update.checked;
-        if (typeof update.comment === 'string') body.comment = update.comment;
-        if (typeof update.document_link === 'string') body.document_link = update.document_link;
+          if (typeof update.checked === 'boolean') body.checked = update.checked;
+          if (typeof update.comment === 'string') body.comment = update.comment;
+          if (typeof update.document_link === 'string') body.document_link = update.document_link;
 
-        return apiClient.put(
-          `/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`,
-          body
-        );
-      })
-    );
+          return apiClient.put(
+            `/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`,
+            body
+          );
+        })
+      );
 
-    const refreshed = await checklistApi.getChecklist(jobId, checklistId);
-    return {
-      total_items: refreshed.total_items,
-      checked_count: refreshed.checked_count,
-      pending_count: refreshed.pending_count,
-      approved_count: refreshed.approved_count,
-      completion_percentage: refreshed.completion_percentage,
-    };
+      const refreshed = await checklistApi.getChecklist(jobId, checklistId);
+      return {
+        total_items: refreshed.total_items,
+        checked_count: refreshed.checked_count,
+        pending_count: refreshed.pending_count,
+        approved_count: refreshed.approved_count,
+        completion_percentage: refreshed.completion_percentage,
+      };
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error?.response?.data?.detail || error?.response?.data?.message || error.message || 'Failed to save changes';
+      throw new Error(errorMessage);
+    }
   },
 
   // Upload file to job media, then link it on checklist item status
@@ -98,38 +104,44 @@ export const checklistApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const uploadResponse = await apiClient.post(
-      `/dashboard/jobs/${jobId}/upload`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+    try {
+      const uploadResponse = await apiClient.post(
+        `/dashboard/jobs/${jobId}/upload`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      const fileUrl = uploadResponse?.data?.file_url;
+      if (!fileUrl) {
+        throw new Error('Upload succeeded but file URL was not returned');
       }
-    );
 
-    const fileUrl = uploadResponse?.data?.file_url;
-    if (!fileUrl) {
-      throw new Error('Upload succeeded but file URL was not returned');
+      const statusPayload = {
+        document_link: fileUrl,
+      };
+      if (comment) {
+        statusPayload.comment = comment;
+      }
+
+      await apiClient.put(
+        `/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`,
+        statusPayload
+      );
+
+      const refreshed = await checklistApi.getChecklist(jobId, checklistId);
+      return {
+        file_url: fileUrl,
+        item: refreshed.items.find((item) => item.id === itemId),
+      };
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error?.response?.data?.detail || error?.response?.data?.message || error.message || 'Upload failed';
+      throw new Error(errorMessage);
     }
-
-    const statusPayload = {
-      document_link: fileUrl,
-    };
-    if (comment) {
-      statusPayload.comment = comment;
-    }
-
-    await apiClient.put(
-      `/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`,
-      statusPayload
-    );
-
-    const refreshed = await checklistApi.getChecklist(jobId, checklistId);
-    return {
-      file_url: fileUrl,
-      item: refreshed.items.find((item) => item.id === itemId),
-    };
   },
 
   getJobChecklists: async (jobId) => {

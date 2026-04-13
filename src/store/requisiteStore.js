@@ -8,13 +8,17 @@ const useRequisiteStore = create(
       bomData: [],
       salesOrder: '',
       cabinetPosition: '',
+      soDetails: null,
       
       // Bucket
       bucket: [],
       
       // Actions
-      setBOMData: (data, salesOrder, cabinetPosition) => 
-        set({ bomData: data, salesOrder, cabinetPosition }),
+      setBOMData: (data, salesOrder, cabinetPosition, soDetails = null) =>
+        set({ bomData: data, salesOrder, cabinetPosition, soDetails }),
+
+      setSODetails: (soDetails) =>
+        set({ soDetails }),
       
       addToBucket: (item) =>
         set((state) => {
@@ -54,7 +58,7 @@ const useRequisiteStore = create(
           )
         })),
       
-      clearBucket: () => set({ bucket: [], bomData: [], salesOrder: '', cabinetPosition: '' }),
+      clearBucket: () => set({ bucket: [], bomData: [], salesOrder: '', cabinetPosition: '', soDetails: null }),
       
       getBucketCount: () => get().bucket.length,
     }),
@@ -63,7 +67,8 @@ const useRequisiteStore = create(
       partialize: (state) => ({
         bucket: state.bucket,
         salesOrder: state.salesOrder,
-        cabinetPosition: state.cabinetPosition
+        cabinetPosition: state.cabinetPosition,
+        soDetails: state.soDetails
       })
     }
   )

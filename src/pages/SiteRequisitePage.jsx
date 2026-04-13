@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Building2, FolderOpen, MapPin } from 'lucide-react';
+import { Search, ShoppingCart, Building2, FolderOpen, MapPin, UserCircle2, BadgeCheck, AlertCircle } from 'lucide-react';
 import BOMTreeNode from '../components/BOMTreeNode';
 import AddToBucketModal from '../components/AddToBucketModal';
 import useRequisiteStore from '../store/requisiteStore';
@@ -17,9 +17,24 @@ const SiteRequisitePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [soDetails, setSODetails] = useState(null);
+  const [detailsError, setDetailsError] = useState('');
 
-  const { bomData, setBOMData, addToBucket, bucket } = useRequisiteStore();
+  const { bomData, setBOMData, addToBucket, bucket, soDetails } = useRequisiteStore();
+
+  const formatOrderState = (value) => {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (!normalized) return '';
+
+    const labels = {
+      draft: 'Quotation',
+      sent: 'Quotation Sent',
+      sale: 'Confirmed',
+      done: 'Locked',
+      cancel: 'Cancelled',
+    };
+
+    return labels[normalized] || normalized.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   const handleFetchBOM = async (e) => {
     e.preventDefault();
@@ -33,7 +48,7 @@ const SiteRequisitePage = () => {
 
     setLoading(true);
     setError('');
-    setSODetails(null);
+    setDetailsError('');
 
     try {
       const [data, details] = await Promise.allSettled([
@@ -47,10 +62,11 @@ const SiteRequisitePage = () => {
 
       setSalesOrder(normalizedSalesOrder);
       setCabinetPosition(normalizedCabinetPosition);
-      setBOMData(data.value, normalizedSalesOrder, normalizedCabinetPosition);
+      const resolvedDetails = details.status === 'fulfilled' ? details.value : null;
+      setBOMData(data.value, normalizedSalesOrder, normalizedCabinetPosition, resolvedDetails);
 
-      if (details.status === 'fulfilled') {
-        setSODetails(details.value);
+      if (details.status === 'rejected') {
+        setDetailsError(details.reason?.message || details.reason?.data?.detail || 'Failed to fetch sales order details from Odoo.');
       }
     } catch (err) {
       setError(err?.message || err?.data?.detail || 'Failed to fetch BOM data');
@@ -131,6 +147,16 @@ const SiteRequisitePage = () => {
               {error}
             </div>
           )}
+
+          {detailsError && (
+            <div className="mt-4 flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="font-semibold">SO details not available yet</p>
+                <p className="mt-1">{detailsError} Fetch the SO details successfully before submitting the site requisite.</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -157,6 +183,24 @@ const SiteRequisitePage = () => {
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">Project</p>
                     <p className="font-medium text-foreground">{soDetails.project_name}</p>
+                  </div>
+                </div>
+              )}
+              {soDetails.client_order_ref && (
+                <div className="flex items-start gap-2">
+                  <UserCircle2 className="w-4 h-4 text-primary/70 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">SO POC</p>
+                    <p className="font-medium text-foreground">{soDetails.client_order_ref}</p>
+                  </div>
+                </div>
+              )}
+              {soDetails.order_state && (
+                <div className="flex items-start gap-2">
+                  <BadgeCheck className="w-4 h-4 text-primary/70 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Order Status</p>
+                    <p className="font-medium text-foreground">{formatOrderState(soDetails.order_state)}</p>
                   </div>
                 </div>
               )}

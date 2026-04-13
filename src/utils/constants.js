@@ -5,7 +5,7 @@ const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:
 export const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '').replace(/\/auth$/, '');
 
 // App Info
-export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Modula ';
+export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Modula';
 
 // Job Status
 export const JOB_STATUS = {

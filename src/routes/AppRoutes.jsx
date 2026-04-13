@@ -81,9 +81,7 @@ function AppRoutes() {
             path="/dashboard/jobs/:jobId/checklist/:checklistId"
             element={<ChecklistPage />}
           />
-          {/* <Route path="/" element={<Navigate to="/site-requisite" replace />} /> */}
           <Route path="/site-requisite" element={<SiteRequisitePage />} />
-          {/* <Route path="/site-requisite" element={<SiteRequisitePage />} /> */}
 
           <Route path="/site-requisite/bucket" element={<BucketPage />} />
           <Route path="/site-requisite/bucket/submit" element={<SubmitPage />} />

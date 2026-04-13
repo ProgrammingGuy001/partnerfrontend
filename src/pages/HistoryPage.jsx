@@ -13,9 +13,11 @@ import {
   Loader,
   FileText,
   Filter,
-  AlertCircle
+  AlertCircle,
+  Download,
 } from 'lucide-react';
 import { useBOMHistory} from '@hooks/useQueryHooks';
+import { bomAPI } from '@/api/bomApi';
 import { Card, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
@@ -27,6 +29,18 @@ const HistoryPage = () => {
   const [expandedItems, setExpandedItems] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownload = async (id, salesOrder) => {
+    setDownloadingId(id);
+    try {
+      await bomAPI.downloadRepairOrder(id, salesOrder);
+    } catch {
+      // silently ignore — browser already shows network errors
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const { data: history = [], isLoading: loading, error, refetch } = useBOMHistory(100, 0);
 
@@ -49,6 +63,21 @@ const HistoryPage = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatDateOnly = (dateString) => {
+    if (!dateString) return 'N/A';
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+
+    return formatDate(dateString);
   };
 
   const filteredHistory = history.filter(item => {
@@ -183,6 +212,20 @@ const HistoryPage = () => {
                           <ChevronRight className="w-4 h-4" />
                         )}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-0.5 shrink-0 h-8 gap-1.5 text-xs"
+                        disabled={downloadingId === item.id}
+                        onClick={(e) => { e.stopPropagation(); handleDownload(item.id, item.sales_order); }}
+                      >
+                        {downloadingId === item.id ? (
+                          <Loader className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Download className="w-3.5 h-3.5" />
+                        )}
+                        Repair Order
+                      </Button>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-3">
@@ -226,6 +269,41 @@ const HistoryPage = () => {
                 {/* Expanded Content */}
                 {expandedItems.has(item.id) && (
                   <div className="border-t border-border/50 bg-secondary/20 p-5 mt-1 animate-slideUp">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-5 text-sm">
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Customer</p>
+                        <p className="font-medium text-foreground">{item.customer_name || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Project Name</p>
+                        <p className="font-medium text-foreground">{item.project_name || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">SO POC</p>
+                        <p className="font-medium text-foreground">{item.so_poc || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Repair Reference</p>
+                        <p className="font-medium text-foreground">{item.repair_reference || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Expected Delivery</p>
+                        <p className="font-medium text-foreground">{formatDateOnly(item.expected_delivery)}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">DO Number</p>
+                        <p className="font-medium text-foreground">{item.do_number || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2 md:col-span-2 xl:col-span-1">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Sale Order Status</p>
+                        <p className="font-medium text-foreground">{item.so_status || 'N/A'}</p>
+                      </div>
+                      <div className="rounded-md border border-border bg-background px-3 py-2 md:col-span-2 xl:col-span-2">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wide">Delivery Address</p>
+                        <p className="font-medium text-foreground">{item.delivery_address || 'N/A'}</p>
+                      </div>
+                    </div>
+
                     <h4 className="font-semibold text-foreground mb-4 text-sm tracking-tight flex items-center gap-2">
                       <FileText className="w-4 h-4 text-muted-foreground" />
                       Requisite Items
@@ -237,6 +315,8 @@ const HistoryPage = () => {
                             <TableHead className="w-[50px]">#</TableHead>
                             <TableHead>Product Name</TableHead>
                             <TableHead>Quantity</TableHead>
+                            <TableHead>Component Status</TableHead>
+                            <TableHead>Department</TableHead>
                             <TableHead>Issue Description</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -246,6 +326,14 @@ const HistoryPage = () => {
                               <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                               <TableCell className="font-medium">{req.product_name}</TableCell>
                               <TableCell>{req.quantity}</TableCell>
+                              <TableCell>
+                                {req.component_status || <span className="text-muted-foreground/60 italic text-sm">N/A</span>}
+                              </TableCell>
+                              <TableCell>
+                                {req.responsible_department
+                                  ? <Badge variant="outline" className="capitalize">{req.responsible_department}</Badge>
+                                  : <span className="text-muted-foreground/60 italic text-sm">—</span>}
+                              </TableCell>
                               <TableCell>
                                 {req.issue_description || <span className="text-muted-foreground/60 italic text-sm">N/A</span>}
                               </TableCell>

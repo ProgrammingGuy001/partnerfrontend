@@ -55,7 +55,6 @@ const useChecklistStore = create(
         
         try {
           const data = await checklistApi.getChecklist(jobId, checklistId);
-          console.log('Fetched checklist data:', data);
           
           set({
             checklist: data.checklist,

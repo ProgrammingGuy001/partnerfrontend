@@ -16,22 +16,24 @@ const useRequisiteStore = create(
       setBOMData: (data, salesOrder, cabinetPosition) => 
         set({ bomData: data, salesOrder, cabinetPosition }),
       
-      addToBucket: (item) => 
+      addToBucket: (item) =>
         set((state) => {
           // Check if item already exists
           const exists = state.bucket.find(
             (bucketItem) => bucketItem.product_name === item.product_name
           );
-          
+
           if (exists) {
             return state; // Don't add duplicate
           }
-          
+
           return {
             bucket: [...state.bucket, {
               product_name: item.product_name,
               quantity: item.quantity || 1,
-              issue_description: item.issue_description || ''
+              issue_description: item.issue_description || '',
+              responsible_department: item.responsible_department || null,
+              component_status: item.component_status || '',
             }]
           };
         }),

@@ -19,6 +19,9 @@ const SubmitPage = () => {
   const { bucket, salesOrder, cabinetPosition, clearBucket } = useRequisiteStore();
 
   const [srPoc, setSrPoc] = useState('');
+  const [repairReference, setRepairReference] = useState('');
+  const [expectedDelivery, setExpectedDelivery] = useState('');
+  const [doNumber, setDoNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -44,7 +47,10 @@ const SubmitPage = () => {
         sales_order: salesOrder,
         cabinet_position: cabinetPosition,
         sr_poc: srPoc || null,
-        items: bucket
+        repair_reference: repairReference || null,
+        expected_delivery: expectedDelivery || null,
+        do_number: doNumber || null,
+        items: bucket,
       };
 
       await bomAPI.submitRequisite(payload);
@@ -179,6 +185,41 @@ const SubmitPage = () => {
                   />
                 </div>
 
+                <div className="rounded-lg border border-border/70 bg-secondary/20 p-4 text-sm text-muted-foreground">
+                  Customer, project name, delivery address, sale order status, and SO POC are pulled automatically from the sales order details used during job creation.
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Repair Reference</Label>
+                    <Input
+                      type="text"
+                      value={repairReference}
+                      onChange={(e) => setRepairReference(e.target.value)}
+                      placeholder="Enter repair reference"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Expected Delivery</Label>
+                    <Input
+                      type="date"
+                      value={expectedDelivery}
+                      onChange={(e) => setExpectedDelivery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>DO Number</Label>
+                    <Input
+                      type="text"
+                      value={doNumber}
+                      onChange={(e) => setDoNumber(e.target.value)}
+                      placeholder="Enter delivery order number"
+                    />
+                  </div>
+                </div>
+
                 {/* Submit Buttons */}
                 <div className="flex gap-4 pt-4 border-t border-border/50">
                   <Button
@@ -253,6 +294,11 @@ const SubmitPage = () => {
                           x{item.quantity}
                         </div>
                       </div>
+                      {item.component_status && (
+                        <div className="text-[11px] text-muted-foreground">
+                          Component Status: <span className="text-foreground">{item.component_status}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -1,6 +1,7 @@
 // components/Checklist/ChecklistItem.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import useChecklistStore from '../../store/checklistStore';
+import toast from 'react-hot-toast';
 import {
   CheckCircleIcon,
   DocumentIcon,
@@ -45,11 +46,11 @@ const ChecklistItem = ({ item }) => {
     // Prevent checking if photo or notes are missing
     if (!item.checked) {
       if (!item.document_link) {
-        alert('⚠️ Please upload a photo before marking this item complete.');
+        toast.error('Please upload a photo before marking this item complete.');
         return;
       }
       if (!item.comment || item.comment.trim() === '') {
-        alert('⚠️ Please add notes/comment before marking this item complete.');
+        toast.error('Please add notes/comment before marking this item complete.');
         return;
       }
     }
@@ -77,9 +78,8 @@ const ChecklistItem = ({ item }) => {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Failed to upload document. Please try again.');
+    } catch {
+      toast.error('Failed to upload document. Please try again.');
     } finally {
       setIsUploading(false);
     }

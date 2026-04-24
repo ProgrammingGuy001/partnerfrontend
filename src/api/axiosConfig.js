@@ -62,6 +62,11 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth-token');
 
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

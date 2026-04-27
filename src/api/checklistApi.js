@@ -67,36 +67,36 @@ export const checklistApi = {
   batchUpdate: async (jobId, checklistId, payload) => {
     const updates = payload?.updates || [];
 
-    try {
-      await Promise.all(
-        updates.map((update) => {
-          const itemId = update.checklist_item_id || update.id;
-          const body = {};
+    const results = await Promise.allSettled(
+      updates.map((update) => {
+        const itemId = update.checklist_item_id || update.id;
+        const body = {};
 
-          if (typeof update.checked === 'boolean') body.checked = update.checked;
-          if (typeof update.comment === 'string') body.comment = update.comment;
-          if (typeof update.document_link === 'string') body.document_link = update.document_link;
+        if (typeof update.checked === 'boolean') body.checked = update.checked;
+        if (typeof update.comment === 'string') body.comment = update.comment;
+        if (typeof update.document_link === 'string') body.document_link = update.document_link;
 
-          return apiClient.put(
-            `/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`,
-            body
-          );
-        })
-      );
+        return apiClient.put(`/dashboard/jobs/${jobId}/checklists/items/${itemId}/status`, body);
+      })
+    );
 
-      const refreshed = await checklistApi.getChecklist(jobId, checklistId);
-      return {
-        total_items: refreshed.total_items,
-        checked_count: refreshed.checked_count,
-        pending_count: refreshed.pending_count,
-        approved_count: refreshed.approved_count,
-        completion_percentage: refreshed.completion_percentage,
-      };
-    } catch (error) {
-      // Extract error message from response
-      const errorMessage = error?.response?.data?.detail || error?.response?.data?.message || error.message || 'Failed to save changes';
+    const failures = results.filter((r) => r.status === 'rejected');
+
+    if (failures.length === updates.length && updates.length > 0) {
+      const firstError = failures[0]?.reason;
+      const errorMessage = firstError?.response?.data?.detail || firstError?.message || 'All updates failed. Please try again.';
       throw new Error(errorMessage);
     }
+
+    const refreshed = await checklistApi.getChecklist(jobId, checklistId);
+    return {
+      total_items: refreshed.total_items,
+      checked_count: refreshed.checked_count,
+      pending_count: refreshed.pending_count,
+      approved_count: refreshed.approved_count,
+      completion_percentage: refreshed.completion_percentage,
+      ...(failures.length > 0 && { partial_failure: true }),
+    };
   },
 
   // Upload file to job media, then link it on checklist item status

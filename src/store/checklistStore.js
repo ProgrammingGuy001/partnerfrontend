@@ -136,7 +136,7 @@ saveChanges: async () => {
   // Validate all items being checked require photo and notes
   for (const [id, changes] of pendingChanges.entries()) {
     if (changes.checked === true) {
-      const item = items.find(i => i.id === parseInt(id));
+      const item = items.find(i => i.id === Number.parseInt(id));
       if (!item?.document_link) {
         const errorMsg = `Item "${item?.text || 'Unknown'}" requires a photo before it can be marked complete.`;
         set({ error: errorMsg });
@@ -163,8 +163,6 @@ saveChanges: async () => {
       checklist.id,
       { updates }
     );
-    
-    // ✅ Keep optimistic items, just update stats from server
     set({
       items: items,  // Keep current items (already updated optimistically)
       stats: {

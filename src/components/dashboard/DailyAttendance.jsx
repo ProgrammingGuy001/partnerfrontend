@@ -205,7 +205,7 @@ const DailyAttendance = () => {
     }
 
     try {
-      await record({
+      const result = await record({
         jobId,
         latitude,
         longitude,
@@ -213,17 +213,36 @@ const DailyAttendance = () => {
         photoFile,
         attendanceType,
         reportFile: attendanceType === 'check_out' ? reportFile : null,
+        sundayReason: sundayReason.trim() || undefined,
       });
+
+      const clearForm = () => {
+        if (photoPreview) URL.revokeObjectURL(photoPreview);
+        setPhotoFile(null);
+        setPhotoPreview(null);
+        setManualLocation('');
+        setReportFile(null);
+      };
+
+      // Sunday: the attempt was filed for approval instead of recorded. The GPS fix
+      // and photo travelled with it, so there is nothing to submit again once it is
+      // granted. Answers 202, which axios treats as success — without this branch the
+      // user is told the check-in was recorded when it was not.
+      if (result?.status === 'pending_approval') {
+        toast.success(result.message || 'Approval request sent to superadmin');
+        clearForm();
+        setSundayReason('');
+        setSundayBlocked(true);
+        await fetchSundayRequests();
+        return;
+      }
+
       toast.success(attendanceType === 'check_in' ? 'Check-in recorded' : 'Check-out and report submitted');
-      if (photoPreview) URL.revokeObjectURL(photoPreview);
-      setPhotoFile(null);
-      setPhotoPreview(null);
-      setManualLocation('');
-      setReportFile(null);
+      clearForm();
     } catch (err) {
-      // The backend blocks Sunday check-in without an approved request; open the
-      // request form instead of leaving the user at a dead end.
-      if (err.status === 403 && /sunday/i.test(err.message || '')) {
+      // 409 covers a request already waiting on the superadmin, 403 a rejected one.
+      // Either way, show the request panel instead of leaving the user at a dead end.
+      if ((err.status === 403 || err.status === 409) && /sunday/i.test(err.message || '')) {
         setSundayBlocked(true);
         await fetchSundayRequests();
       }

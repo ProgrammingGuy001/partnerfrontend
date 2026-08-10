@@ -11,6 +11,9 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
 
 
+// Matches the 10MB ceiling the mobile client shows for checklist documents.
+const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+
 /**
  * Main Checklist Page Component
  * 
@@ -209,6 +212,53 @@ const ChecklistPage = () => {
 
         {!checklist.template_available && (
           <>
+            {/* Non-ISM checklists take a supporting document too — the mobile client
+                has always offered this, so the web client must not be the odd one out. */}
+            <section className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-200 px-5 py-4">
+                <h2 className="text-base font-semibold text-gray-900">Checklist Document</h2>
+              </div>
+              <div className="space-y-3 px-5 py-4">
+                {checklist.document_link && (
+                  <a
+                    href={checklist.document_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-sm font-semibold text-emerald-700 underline underline-offset-2"
+                  >
+                    View uploaded document
+                  </a>
+                )}
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.docx"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
+                    if (file && file.size > MAX_DOCUMENT_BYTES) {
+                      setSpreadsheet(null);
+                      setDocumentError('Document must be 10MB or smaller.');
+                      return;
+                    }
+                    setSpreadsheet(file);
+                    setDocumentError('');
+                  }}
+                  className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-semibold hover:file:bg-gray-200"
+                />
+                <p className="text-xs text-gray-500">PDF, JPG, PNG, or DOCX • Max 10MB</p>
+                <button
+                  type="button"
+                  onClick={uploadSpreadsheet}
+                  disabled={!spreadsheet || isSaving}
+                  className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSaving ? 'Uploading…' : checklist.document_link ? 'Replace document' : 'Upload document'}
+                </button>
+                {documentError && (
+                  <p role="alert" className="text-sm font-medium text-red-600">{documentError}</p>
+                )}
+              </div>
+            </section>
+
             <ChecklistStats />
             <div className="bg-white rounded-lg shadow-sm mt-6">
               <div className="px-6 py-4 border-b border-gray-200">

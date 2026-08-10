@@ -51,7 +51,7 @@ export const dashboardApi = {
     return response.data;
   },
 
-  recordAttendance: async ({ jobId, latitude, longitude, manualLocation, photoFile, attendanceType, reportFile }) => {
+  recordAttendance: async ({ jobId, latitude, longitude, manualLocation, photoFile, attendanceType, reportFile, sundayReason }) => {
     const formData = new FormData();
     if (jobId) formData.append('job_id', String(jobId));
     formData.append('latitude', String(latitude));
@@ -60,6 +60,8 @@ export const dashboardApi = {
     formData.append('attendance_type', attendanceType || 'check_in');
     formData.append('photo', photoFile, photoFile?.name || `attendance-${Date.now()}.jpg`);
     if (reportFile) formData.append('report_file', reportFile, reportFile.name);
+    // Only read when the day turns out to need superadmin approval.
+    if (sundayReason) formData.append('sunday_reason', sundayReason);
     const response = await apiClient.post('/dashboard/attendance', formData);
     return response.data;
   },

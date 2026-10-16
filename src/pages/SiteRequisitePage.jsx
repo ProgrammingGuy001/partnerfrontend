@@ -13,8 +13,6 @@ import { getApiErrorMessage, getApiFieldErrors } from '../api/apiErrors';
 const SiteRequisitePage = () => {
   const navigate = useNavigate();
   const [salesOrder, setSalesOrder] = useState('');
-  const [cabinetPosition, setCabinetPosition] = useState('');
-  const [allCabinets, setAllCabinets] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [detailsError, setDetailsError] = useState('');
@@ -41,10 +39,10 @@ const SiteRequisitePage = () => {
   const handleFetchBOM = async (e) => {
     e.preventDefault();
     const normalizedSalesOrder = salesOrder.trim();
-    const normalizedCabinetPosition = allCabinets ? 'ALL' : cabinetPosition.trim();
+    const normalizedCabinetPosition = 'ALL';
 
-    if (!normalizedSalesOrder || !normalizedCabinetPosition) {
-      setError('Sales order and cabinet position are required.');
+    if (!normalizedSalesOrder) {
+      setError('Sales order is required.');
       return;
     }
 
@@ -64,7 +62,6 @@ const SiteRequisitePage = () => {
       }
 
       setSalesOrder(normalizedSalesOrder);
-      setCabinetPosition(normalizedCabinetPosition);
       const resolvedDetails = details.status === 'fulfilled' ? details.value : null;
       setBOMData(data.value, normalizedSalesOrder, normalizedCabinetPosition, resolvedDetails);
       setSearched(true);
@@ -142,29 +139,6 @@ const SiteRequisitePage = () => {
                 required
               />
               {fieldErrors.sales_order ? <p className="text-xs text-destructive">{fieldErrors.sales_order}</p> : null}
-            </div>
-            <div className="flex-1 w-full space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="cabinetPosition">Cabinet Position</Label>
-                <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={allCabinets}
-                    onChange={(e) => setAllCabinets(e.target.checked)}
-                  />
-                  All cabinets
-                </label>
-              </div>
-              <Input
-                id="cabinetPosition"
-                name="cabinetPosition"
-                placeholder="Enter Cabinet Position"
-                value={allCabinets ? 'ALL' : cabinetPosition}
-                onChange={(e) => setCabinetPosition(e.target.value)}
-                disabled={allCabinets}
-                required
-              />
-              {fieldErrors.cabinet_position ? <p className="text-xs text-destructive">{fieldErrors.cabinet_position}</p> : null}
             </div>
             <Button
               type="submit"
@@ -294,7 +268,7 @@ const SiteRequisitePage = () => {
           <CardContent className="py-10 text-center">
             <FolderOpen className="mx-auto h-10 w-10 text-muted-foreground" />
             <p className="mt-3 font-semibold text-foreground">No materials found</p>
-            <p className="mt-1 text-sm text-muted-foreground">Try another cabinet position or choose all cabinets.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Check the sales order number and try again.</p>
           </CardContent>
         </Card>
       ) : null}

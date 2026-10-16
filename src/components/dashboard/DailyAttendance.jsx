@@ -18,6 +18,27 @@ import StatusBadge from '../common/StatusBadge';
 import { getApiErrorMessage, getApiFieldErrors } from '../../api/apiErrors';
 
 // Local date, not toISOString() — that is UTC and rolls the day over early in IST.
+const readPosition = (options) => new Promise((resolve, reject) =>
+  navigator.geolocation.getCurrentPosition(resolve, reject, options));
+
+// A GPS-only fix routinely times out indoors on Android. Fall back to network
+// location instead of telling the user to grant a permission they already granted.
+const getPosition = async () => {
+  if (!navigator.geolocation) throw { code: 0 };
+  try {
+    return await readPosition({ timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 });
+  } catch (err) {
+    if (err?.code === 1) throw err; // PERMISSION_DENIED: a retry cannot help
+    return readPosition({ timeout: 15000, enableHighAccuracy: false, maximumAge: 120000 });
+  }
+};
+
+const locationErrorMessage = (err) => {
+  if (err?.code === 0) return 'Location is not supported in this browser.';
+  if (err?.code === 1) return 'Location access is blocked for this site. Allow it in browser site settings and try again.';
+  return 'Could not get your location. Turn on device location (GPS) and try again.';
+};
+
 const nextSundayISO = () => {
   const d = new Date();
   d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
@@ -228,17 +249,11 @@ const DailyAttendance = ({ initialRosterEntryId = '', initialJobId = '' }) => {
     setLocating(true);
     let latitude, longitude;
     try {
-      const position = await new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 10000,
-          enableHighAccuracy: true,
-        })
-      );
+      const position = await getPosition();
       latitude = position.coords.latitude;
       longitude = position.coords.longitude;
-    } catch {
-      toast.error('Could not get location. Please allow location access.');
-      setLocating(false);
+    } catch (err) {
+      toast.error(locationErrorMessage(err));
       return;
     } finally {
       setLocating(false);

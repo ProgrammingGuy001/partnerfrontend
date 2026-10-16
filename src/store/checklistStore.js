@@ -288,7 +288,7 @@ saveChanges: async () => {
         try {
           const response = await checklistApi.uploadChecklistDocument(jobId, checklist.id, file);
           set({
-            checklist: { ...checklist, document_link: response.document_link },
+            checklist: { ...checklist, completed_by_pdf: response.completed_by_pdf, document_link: response.document_link },
             isSaving: false,
           });
           return response;

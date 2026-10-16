@@ -150,7 +150,7 @@ const ChecklistPage = () => {
 
         <Card title="Checklist document" className="mt-6">
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Export the supplied PDF above, complete it on site, then upload the finished copy.</p>
+            <p className="text-sm text-muted-foreground">Upload a completed PDF to satisfy this checklist without filling each item in the app.</p>
             {checklist.document_link && (
               <a href={checklist.document_link} target="_blank" rel="noreferrer" className="inline-block text-sm font-semibold text-primary underline underline-offset-2">
                 View uploaded checklist
@@ -184,6 +184,8 @@ const ChecklistPage = () => {
           </div>
         </Card>
 
+        {checklist.completed_by_pdf && <p role="status" className="mt-4 text-sm font-medium text-primary">Checklist completed by uploaded PDF.</p>}
+        {!checklist.completed_by_pdf && <>
         <ChecklistStats />
         <Card title="Checklist items" className="mt-6" padding="p-0">
           <div className="divide-y divide-border">
@@ -197,6 +199,7 @@ const ChecklistPage = () => {
             )}
           </div>
         </Card>
+        </>}
       </div>
     </div>
   );
